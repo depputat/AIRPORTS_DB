@@ -70,6 +70,11 @@ pip install -r requirements.txt
 ```env
 SECRET_KEY=your-secret-key
 DEBUG=True
+DATABASE_NAME=your-name-db
+DATABASE_USER=your-username-db
+DATABASE_PASSWORD=your-password-db
+DATABASE_HOST=localhost
+DATABASE_PORT=your-port-db
 ```
 
 ## Где взять `SECRET_KEY`
