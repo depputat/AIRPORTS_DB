@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLAP-аналитика полетов</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0 0 15px 0;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .control-group {
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .export-btn {
+            background: #28a745;
+        }
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 2.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .empty {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 OLAP-аналитика полетов</h1>
+    </div>
+
+    <div class="controls">
+        <form method="get" id="reportForm">
+            <div class="control-group">
+                <label><strong>Тип отчёта:</strong></label>
+                <select name="report" onchange="this.form.submit()">
+                    <option value="dashboard" {% if report == 'dashboard' %}selected{% endif %}>📈 Dashboard</option>
+                    <option value="rollup_airline" {% if report == 'rollup_airline' %}selected{% endif %}>✈️ Roll-up по авиакомпаниям</option>
+                    <option value="rollup_route" {% if report == 'rollup_route' %}selected{% endif %}>🛫 Roll-up по маршрутам</option>
+                    <option value="rollup_aircraft" {% if report == 'rollup_aircraft' %}selected{% endif %}>🛩️ Roll-up по самолетам</option>
+                    <option value="rollup_time" {% if report == 'rollup_time' %}selected{% endif %}>📅 Roll-up по времени</option>
+                    <option value="slice_airline" {% if report == 'slice_airline' %}selected{% endif %}>✂️ Срез по авиакомпании</option>
+                    <option value="slice_route" {% if report == 'slice_route' %}selected{% endif %}>✂️ Срез по маршруту</option>
+                    <option value="matrix_aircraft_route" {% if report == 'matrix_aircraft_route' %}selected{% endif %}>📋 Матрица: Самолет × Маршрут</option>
+                    <option value="passenger_statistics" {% if report == 'passenger_statistics' %}selected{% endif %}>👥 Статистика пассажиров</option>
+                </select>
+            </div>
+            {% if report == 'slice_airline' %}
+            <div class="control-group">
+                <select name="airline_id" onchange="this.form.submit()">
+                    <option value="">Выберите авиакомпанию...</option>
+                    {% for airline in airlines %}
+                        <option value="{{ airline.airline_id }}" {% if selected_airline_id == airline.airline_id|stringformat:"s" %}selected{% endif %}>
+                            {{ airline.company_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            {% if report == 'slice_route' %}
+            <div class="control-group">
+                <select name="route_id" onchange="this.form.submit()">
+                    <option value="">Выберите маршрут...</option>
+                    {% for route in routes %}
+                        <option value="{{ route.route_id }}" {% if selected_route_id == route.route_id|stringformat:"s" %}selected{% endif %}>
+                            {{ route.flight_number }} ({{ route.departure_airport.iata_code }} → {{ route.arrival_airport.iata_code }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </form>
+        <form method="get" action="{% url 'export_csv' %}">
+            <input type="hidden" name="report" value="{{ report }}">
+            {% if selected_airline_id %}
+            <input type="hidden" name="airline_id" value="{{ selected_airline_id }}">
+            {% endif %}
+            {% if selected_route_id %}
+            <input type="hidden" name="route_id" value="{{ selected_route_id }}">
+            {% endif %}
+            <button type="submit" class="export-btn">📥 Экспорт в CSV</button>
+        </form>
+    </div>
+    {% if report == 'dashboard' %}
+    <div class="dashboard">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_flights }}</div>
+            <div class="stat-label">Всего рейсов</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ active_flights }}</div>
+            <div class="stat-label">Активных рейсов</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_airlines }}</div>
+            <div class="stat-label">Авиакомпаний</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_routes }}</div>
+            <div class="stat-label">Маршрутов</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_passengers }}</div>
+            <div class="stat-label">Пассажиров</div>
+        </div>
+    </div>
+    {% endif %}
+    {% if headers %}
+    <table>
+        <thead>
+            <tr>
+                {% for h in headers %}
+                    <th>{{ h }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                {% for cell in row %}
+                    <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% elif report != 'dashboard' %}
+    <div class="empty">
+        <p>Нет данных для выбранного отчета или фильтров.</p>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'index' %}" class="back-link">← На главную</a>
+</body>
+</html>

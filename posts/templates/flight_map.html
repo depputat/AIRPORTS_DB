@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта полетов - Flight Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: white; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center; }
+        #map { height: calc(100vh - 80px); width: 100%; }
+
+        .flight-popup { min-width: 280px; }
+        .flight-popup h3 { color: #667eea; margin-bottom: 10px; border-bottom: 2px solid #667eea; padding-bottom: 5px; }
+        .flight-popup p { margin: 5px 0; color: #333; font-size: 0.95em; }
+        .flight-popup .route { font-weight: bold; font-size: 1.1em; margin: 8px 0; }
+
+        .legend { position: absolute; bottom: 20px; right: 20px; background: white; color: black; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000; max-width: 220px; }
+        .legend-item { display: flex; align-items: center; margin: 5px 0; font-size: 0.9em; }
+        .legend-icon { width: 24px; height: 24px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+        .back-link { position: absolute; top: 20px; left: 20px; background: white; color: #667eea; padding: 10px 20px; border-radius: 5px; text-decoration: none; z-index: 1000; font-weight: bold; }
+
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
+        .plane-emoji {
+            font-size: 28px;
+            line-height: 1;
+            text-align: center;
+            display: block;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Интерактивная карта полетов</h1>
+        <p>Всего рейсов: {{ active_flights_count }}</p>
+    </div>
+
+    <a href="{% url 'index' %}" class="back-link">← На главную</a>
+
+    <div id="map"></div>
+
+    <div class="legend">
+        <strong>📋 Легенда:</strong>
+        <div class="legend-item"><span class="legend-icon">🕐</span> Запланирован</div>
+        <div class="legend-item"><span class="legend-icon">🚪</span> Посадка</div>
+        <div class="legend-item"><span class="legend-icon">✈️</span> В пути</div>
+        <div class="legend-item"><span class="legend-icon">✅</span> Прибыл</div>
+        <div class="legend-item"><span class="legend-icon">❌</span> Отменён</div>
+    </div>
+
+    <script>
+        const airportCoords = {
+            'SVO': [55.9728, 37.4147],  // Москва
+            'LHR': [51.4700, -0.4543],  // Лондон
+            'HND': [35.5494, 139.7798], // Токио
+            'JFK': [40.6413, -73.7781], // Нью-Йорк
+            'DXB': [25.2532, 55.3657]   // Дубай
+        };
+
+        const map = L.map('map').setView([45, 30], 2);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const flights = {{ flights_json|safe }};
+
+        console.log("Загружено рейсов:", flights.length);
+        function createCustomIcon(emoji) {
+            return L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class="plane-emoji">${emoji}</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+        }
+        function getScatteredCoords(baseLat, baseLng, seed) {
+            const angle = (seed * 137.5) % 360;
+            const distance = 0.02;
+            const rad = angle * (Math.PI / 180);
+            const dLat = Math.cos(rad) * distance;
+            const dLng = Math.sin(rad) * distance;
+
+            return [baseLat + dLat, baseLng + dLng];
+        }
+        flights.forEach(flight => {
+            const depIata = flight.departure_airport.iata;
+            const arrIata = flight.arrival_airport.iata;
+
+            const depCoords = airportCoords[depIata];
+            const arrCoords = airportCoords[arrIata];
+
+            if (!depCoords || !arrCoords) {
+                console.warn(`Нет координат для рейса ${flight.flight_number}`);
+                return;
+            }
+
+            const status = flight.status;
+            let markerPosition = depCoords;
+            let emoji = '✈️';
+            if (status === 'Cancelled') {
+                const midLat = (depCoords[0] + arrCoords[0]) / 2;
+                const midLng = (depCoords[1] + arrCoords[1]) / 2;
+                markerPosition = getScatteredCoords(midLat, midLng, flight.id);
+                emoji = '❌';
+            }
+            else if (status === 'Scheduled' || status === 'Boarding') {
+                markerPosition = getScatteredCoords(depCoords[0], depCoords[1], flight.id);
+                emoji = status === 'Boarding' ? '🚪' : '🕐';
+            }
+            else if (status === 'Departed') {
+                const midLat = (depCoords[0] + arrCoords[0]) / 2;
+                const midLng = (depCoords[1] + arrCoords[1]) / 2;
+                markerPosition = getScatteredCoords(midLat, midLng, flight.id);
+                emoji = '✈️';
+            }
+            else if (status === 'Arrived') {
+                markerPosition = getScatteredCoords(arrCoords[0], arrCoords[1], flight.id);
+                emoji = '✅';
+            }
+
+            console.log(`Рейс ${flight.flight_number}: статус=${status}, позиция=[${markerPosition[0].toFixed(2)}, ${markerPosition[1].toFixed(2)}]`);
+            L.polyline([depCoords, arrCoords], {
+                color: '#667eea',
+                weight: 3,
+                opacity: 0.6,
+                dashArray: '10, 10'
+            }).addTo(map);
+
+            L.marker(depCoords).bindPopup(`<b>🛫 ${flight.departure_airport.name}</b><br>${depIata}`).addTo(map);
+            L.marker(arrCoords).bindPopup(`<b>🛬 ${flight.arrival_airport.name}</b><br>${arrIata}`).addTo(map);
+
+            const marker = L.marker(markerPosition, {
+                icon: createCustomIcon(emoji)
+            }).addTo(map);
+
+            const statusText = {
+                'Scheduled': '🕐 Запланирован',
+                'Boarding': '🚪 Посадка',
+                'Departed': '✈️ В пути',
+                'Arrived': '✅ Прибыл',
+                'Cancelled': '❌ Отменён'
+            }[status] || status;
+
+            const popupContent = `
+                <div class="flight-popup">
+                    <h3>${flight.flight_number}</h3>
+                    <p class="route">${depIata} → ${arrIata}</p>
+                    <p><strong>Авиакомпания:</strong> ${flight.airline}</p>
+                    <p><strong>Самолёт:</strong> ${flight.airplane}</p>
+                    <p><strong>Тип ВС:</strong> ${flight.aircraft_type}</p>
+                    <p><strong>Отправление:</strong> ${flight.departure_airport.city}</p>
+                    <p><strong>Прибытие:</strong> ${flight.arrival_airport.city}</p>
+                    <p><strong>Вылет:</strong> ${new Date(flight.departure_time).toLocaleString('ru-RU')}</p>
+                    <p><strong>Прилёт:</strong> ${new Date(flight.arrival_time).toLocaleString('ru-RU')}</p>
+                    <p><strong>Статус:</strong> <span style="font-weight:bold">${statusText}</span></p>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+        });
+
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рейсы</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+        .header h1 { margin: 0 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; font-weight: bold; }
+        tr:hover { background: #f8f9fa; }
+        .back-link { display: inline-block; margin-top: 20px; color: #667eea; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .empty { background: white; padding: 20px; border-radius: 8px; text-align: center; color: #666; }
+
+        .status-scheduled { background: #ffc107; color: #000; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .status-boarding { background: #17a2b8; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .status-departed { background: #007bff; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .status-arrived { background: #28a745; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .status-cancelled { background: #dc3545; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .status-delayed { background: #fd7e14; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✈️ Рейсы</h1>
+        <p>Расписание и статус всех авиарейсов</p>
+    </div>
+
+    {% if flights %}
+    <table>
+        <thead>
+            <tr>
+                <th>Номер рейса</th>
+                <th>Маршрут</th>
+                <th>Самолет</th>
+                <th>Вылет</th>
+                <th>Прилет</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flight in flights %}
+            <tr>
+                <td><strong>{{ flight.route.flight_number }}</strong></td>
+                <td>{{ flight.route.departure_airport.iata_code }} → {{ flight.route.arrival_airport.iata_code }}</td>
+                <td>{{ flight.airplane.tail_number }}</td>
+                <td>{{ flight.departure_time|date:"d.m.Y H:i" }}</td>
+                <td>{{ flight.arrival_time|date:"d.m.Y H:i" }}</td>
+                <td>
+                {% if flight.flight_status.status_name == 'Scheduled' %}
+                    <span class="status-scheduled">🕐 Запланирован</span>
+                {% elif flight.flight_status.status_name == 'Boarding' %}
+                    <span class="status-boarding">🚪 Посадка</span>
+                {% elif flight.flight_status.status_name == 'Departed' %}
+                    <span class="status-departed">✈️ В пути</span>
+                {% elif flight.flight_status.status_name == 'Arrived' %}
+                    <span class="status-arrived">✅ Прибыл</span>
+                {% elif flight.flight_status.status_name == 'Cancelled' %}
+                    <span class="status-cancelled">❌ Отменён</span>
+                {% else %}
+                    <span>{{ flight.flight_status.status_name }}</span>
+                {% endif %}
+            </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+        <p>Рейсы отсутствуют. Добавьте данные через <a href="/admin/">админ-панель</a>.</p>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'index' %}" class="back-link">← На главную</a>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авиакомпании</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0 0 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .empty {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✈️ Авиакомпании</h1>
+        <p>Список всех авиакомпаний с контактной информацией</p>
+    </div>
+
+    {% if airlines %}
+    <table>
+        <thead>
+            <tr>
+                <th>Код IATA</th>
+                <th>Название компании</th>
+                <th>Телефон горячей линии</th>
+                <th>Email</th>
+                <th>Хаб (аэропорт)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for airline in airlines %}
+            <tr>
+                <td><strong>{{ airline.iata_code }}</strong></td>
+                <td>{{ airline.company_name }}</td>
+                <td>{{ airline.hotline_phone|default:"—" }}</td>
+                <td>{{ airline.email|default:"—" }}</td>
+                    <td>
+                        {% if airline.hub_airport %}
+                            {{ airline.hub_airport.iata_code }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+        <p>Авиакомпании отсутствуют. Добавьте данные через <a href="/admin/">админ-панель</a>.</p>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'index' %}" class="back-link">← На главную</a>
+</body>
+</html>

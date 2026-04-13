@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система управления полетами</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Система управления полетами</h1>
+        <div class="cards">
+            <a href="{% url 'airlines_list' %}" class="card">
+                <div class="icon">🏢</div>
+                <h2>Авиакомпании</h2>
+                <p>Список всех авиакомпаний с контактной информацией и хабами</p>
+            </a>
+            <a href="{% url 'airports_list' %}" class="card">
+                <div class="icon">🛫</div>
+                <h2>Аэропорты</h2>
+                <p>Каталог аэропортов мира с кодами IATA</p>
+            </a>
+            <a href="{% url 'flights_list' %}" class="card">
+                <div class="icon">✈️</div>
+                <h2>Рейсы</h2>
+                <p>Расписание и статус всех авиарейсов</p>
+            </a>
+            <a href="{% url 'flight_list' %}" class="card">
+                <div class="icon">✏️</div>
+                <h2>Управление рейсами</h2>
+                <p>Создание, редактирование и удаление рейсов (CRUD)</p>
+            </a>
+            <a href="{% url 'passenger_list' %}" class="card">
+                <div class="icon">👥</div>
+                <h2>Пассажиры</h2>
+                <p>Управление базой пассажиров и данными</p>
+            </a>
+            <a href="{% url 'ticket_list' %}" class="card">
+                <div class="icon">🎫</div>
+                <h2>Билеты</h2>
+                <p>Управление продажами и бронированием</p>
+            </a>
+            <a href="{% url 'olap_analytics' %}" class="card">
+                <div class="icon">📊</div>
+                <h2>OLAP-аналитика</h2>
+                <p>Многомерный анализ: Roll-up, срезы, статистика</p>
+            </a>
+            <a href="{% url 'flight_map' %}" class="card">
+                <div class="icon">🗺️</div>
+                <h2>Карта полетов</h2>
+                <p>Интерактивная карта в реальном времени</p>
+            </a>
+            <a href="{% url 'export_csv' %}" class="card">
+                <div class="icon">📥</div>
+                <h2>Экспорт данных</h2>
+                <p>Выгрузка отчетов в CSV формат</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
