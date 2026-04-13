@@ -70,11 +70,11 @@ pip install -r requirements.txt
 ```env
 SECRET_KEY=your-secret-key
 DEBUG=True
-DATABASE_NAME=your-name-db
-DATABASE_USER=your-username-db
-DATABASE_PASSWORD=your-password-db
+#DATABASE_NAME=your-name-db
+#DATABASE_USER=your-username-db
+#DATABASE_PASSWORD=your-password-db
 DATABASE_HOST=localhost
-DATABASE_PORT=your-port-db
+#DATABASE_PORT=your-port-db
 ```
 
 ## Где взять `SECRET_KEY`
@@ -90,7 +90,14 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 5. Выполните миграции и запустите сервер:
 
 ```bash
+# Удалите старую базу данных (если есть)
+rm db.sqlite3  # macOS/Linux
+del db.sqlite3  # Windows
+# Создайте миграции
+python manage.py makemigrations posts
+# Примените миграции
 python manage.py migrate
+# Запуск
 python manage.py runserver
 ```
 

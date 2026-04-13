@@ -10,7 +10,7 @@ class City(models.Model):
 
     class Meta:
         db_table = 'cities'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return self.city_name
@@ -24,7 +24,7 @@ class Airport(models.Model):
 
     class Meta:
         db_table = 'airports'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return f"{self.iata_code} - {self.airport_name}"
@@ -41,7 +41,7 @@ class Airline(models.Model):
 
     class Meta:
         db_table = 'airlines'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return f"{self.iata_code} - {self.company_name}"
@@ -56,7 +56,7 @@ class AircraftType(models.Model):
 
     class Meta:
         db_table = 'aircraft_types'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return f"{self.manufacturer} {self.model}"
@@ -71,7 +71,7 @@ class Airplane(models.Model):
 
     class Meta:
         db_table = 'airplanes'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return self.tail_number
@@ -89,7 +89,7 @@ class Route(models.Model):
 
     class Meta:
         db_table = 'routes'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return f"{self.flight_number}"
@@ -102,7 +102,7 @@ class FlightStatus(models.Model):
 
     class Meta:
         db_table = 'flight_status'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return self.status_name
@@ -119,7 +119,7 @@ class Flight(models.Model):
 
     class Meta:
         db_table = 'flights'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return f"{self.route.flight_number} ({self.departure_time})"
@@ -147,7 +147,7 @@ class Passenger(models.Model):
 
     class Meta:
         db_table = 'passengers'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return f"{self.last_name} {self.first_name}"
@@ -165,7 +165,7 @@ class Ticket(models.Model):
 
     class Meta:
         db_table = 'tickets'
-        managed = False
+        #managed = False
 
     def __str__(self):
         return f"Ticket {self.ticket_id} - {self.passenger}"
