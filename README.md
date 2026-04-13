@@ -16,7 +16,7 @@
 
 ## Технологии
 
-- Python 3
+- Python 3.9-3.11
 - Django 4.2
 - PostgreSQL
 - psycopg2-binary
@@ -144,4 +144,4 @@ python manage.py runserver
 
 ## Автор
 
-Проект выполнен в рамках лабораторной работы.
+depputat - Lukin Dmitriy
